@@ -6,7 +6,7 @@ MySocket = {
     init: function(game) {
         var self = this;
         this.theGame = game;
-        self.theSocket = io.connect('http://localhost');
+        self.theSocket = io.connect();
         self.theSocket.on('news', function (data) {
             console.log(data);
             self.theSocket.emit('my other event', { my: 'data' });
@@ -227,6 +227,9 @@ MyBoard = {
                 if (data.dead) {
                     pdata.dead = true;
                     console.log("DEAD PLAYER: "+pdata.sid);
+                }
+                if (data.dir !== undefined) {
+                    pdata.dir = data.dir;
                 }
             }
         });

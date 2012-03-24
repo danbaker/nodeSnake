@@ -2,7 +2,7 @@ var express = require('express'),
     app = express.createServer(),
     io = require('socket.io').listen(app);
 
-app.listen(8124);
+app.listen(process.env.PORT || 8123);
 console.log("Server listening on port %d in %s mode.", app.address().port, app.settings.env);
 
 io.configure(function(){
@@ -230,6 +230,17 @@ var srvSocket = {
             }
         }
     },
+    
+    doDirChange: function(pdata) {
+        if (pdata.dirNext != -1) {
+            pdata.dir = pdata.dirNext;
+            pdata.dirNext = -1;
+            if (!this.tickMessage[pdata.sid]) {
+                this.tickMessage[pdata.sid] = {};
+            }
+            this.tickMessage[pdata.sid].dir = pdata.dir;    // pass to every client that this player changed direction before moving
+        }
+    },
 
     killSnake: function(pdata) {
         pdata.dead = true;                          // mark this player as dead
@@ -259,6 +270,7 @@ var srvSocket = {
         this.tickCounter++;
         this.tickMessage = { tick:this.tickCounter };
         this.eachConnection(function(connData) {
+            self.doDirChange(connData);
             self.doMovePos(connData);
         });
         // check if multiple snakes collided (first snake didn't die ... kill it)
@@ -288,6 +300,7 @@ var srvSocket = {
         connData.sid = (this.nextSnakeId++);        // unique snake id
         connData.pos = {x:loc.x, y:loc.y};          // starting location
         connData.dir = loc.dir;                     // starting direction
+        connData.dirNext = -1;
         connData.tail = [];                         // start with NO tail
         this.brd[loc.x][loc.y] = connData.sid;      // snake id
         //console.log(connData);
@@ -375,6 +388,7 @@ var srvSocket = {
                 connData.dirNext = 3;
                 break;
         }
+        console.log("Keystroke dir="+data.dir+"   dirNext="+connData.dirNext);
     },
 
     log: function(msg) {
