@@ -3,7 +3,7 @@ var express = require('express'),
     io = require('socket.io').listen(app);
 
 app.listen(8124);
-console.log("Server listening on port %d in %s mode", app.address().port, app.settings.env);
+console.log("Server listening on port %d in %s mode.", app.address().port, app.settings.env);
 
 io.configure(function(){
     io.set('log level', 1);
